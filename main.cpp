@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <time.h>
+
 using namespace std;
 
 // A class that represents an undirected graph
@@ -35,9 +36,8 @@ public:
     int scoreOfAlrorithm(int result[]);
 
 
-
     // Hillclimbing algorythm.
-    void hillClimbingAlgorithm(int iteracion );
+    void hillClimbingAlgorithm(int iteracion);
 
     void whiteout(int result[]);
 };
@@ -45,7 +45,9 @@ public:
 
 int Graph::colorUsed(int result[]) {
     int max = 0;
-    for (int i = 0; i < sizeof(result) + 1; i++) { max = std::max(result[i], max); }
+    for (int i = 0; i < (sizeof(result) / sizeof(result[0])) + 1; i++) {
+        max = std::max(result[i], max);
+    } // dopiero teraz widze, ze to jest zjebane bo jednak nie koniecznie najwyzej uzyty kolor to liczba kolorow.
     //  printf ("There is %d different of colors \n",  max+1);
     return max;
 }
@@ -58,7 +60,7 @@ void Graph::addEdge(int v, int w) {
 
 int Graph::colorUsedBad(int *result) {
     bool goodColor[V];
-    int sum = 0;
+
     for (int u = 0; u < V; u++) {
         goodColor[u] = true;
 
@@ -68,6 +70,7 @@ int Graph::colorUsedBad(int *result) {
                 goodColor[result[u]] = false;
         }
     }
+    int sum = 0;
     for (auto const &value: goodColor) {
         sum += value;
 
@@ -76,49 +79,64 @@ int Graph::colorUsedBad(int *result) {
 }
 
 int Graph::scoreOfAlrorithm(int result[]) {
-    int score = (colorUsed(result) + (colorUsed(result) * colorUsedBad(result)));
-   // cout << "score of our alrorithm is: " << score << endl;
+    int score = (colorUsed(result) - (colorUsed(result) * colorUsedBad(result)));
+
+    // cout << "score of our alrorithm is: " << score << endl;
     return score;
 }
+
 // Algorytm gorki
 void Graph::hillClimbingAlgorithm(int iteracion) {
     srand(time(nullptr));
-    int random[V];
-    int result[V];
+    int random[V - 1];
+    int result[V - 1];
     whiteout(result); // nuclear white
-    for (int x = 0; x < V; x++) random[x] = x;
+    for (int x = 0; x < V - 1; x++) random[x] = x;
 
 
     for (int i = 0; i < iteracion; i++)
 
-        for (int j = 0; j < V; j++) {
-            int stretch = sizeof(random)/sizeof(random[0]);
-            int RanIndex = rand() % stretch;
-            random[RanIndex];
+        for (int j = 0; j < V - 1; j++) {
+            int stretch = sizeof(random) / sizeof(random[0]);
+            int RanIndex = (rand() % stretch - 1);
+            int randNumber = random[RanIndex];
 
             list<int>::iterator y;
-            for (y = adj[j].begin(); y != adj[j].end(); ++j) {
+            for (y = adj[j].begin(); y != adj[j].end(); ++y) {
                 int currentState = scoreOfAlrorithm(result);
-                int currentResult = result[*random];
-                if (result[j] == result[*random])
-                    result[*random] = result[j] + 1;  // if our random point is same as his neihber make him bigger
-                if ((currentState > scoreOfAlrorithm(result) && currentState<0) ||  (currentState < scoreOfAlrorithm(result))){
+                cout << currentState << " Currentscore\n";
+
+                int currentResult = result[randNumber];
+                cout << currentResult << " Currentpoints\n";
+
+                if (result[j] == result[randNumber]) {
+                    if (currentState > 0 && result[j] - 1 != result[randNumber] - 1) {
+                        result[randNumber] = result[randNumber] - 1;
+                    }
+                    result[randNumber] =
+                            result[randNumber] + 1;  // if our random point is same as his neihber make him bigger
+                }
+
+                if ((currentState > scoreOfAlrorithm(result) && currentState <= 0) ||
+                    (currentState >= 0 && currentState < scoreOfAlrorithm(result))) {
                     for (int x = *random; x <= stretch - 1; x++) {
                         random[x] = random[i + 1];
                     }
+
                     random[stretch - 1] = {};     // deleting point that have been chacked allready from our array.
-                } else result[j]=currentResult;
+                }
+                result[randNumber] = currentResult;
 
 
             }
         }
-    for (int u = 0; u < V; u++)
+    for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
+    }
+    cout << scoreOfAlrorithm(result) << endl;
+    printf("There is %d different  colors \n", colorUsed(result) + 1);
 }
-
-
-
 
 
 void Graph::greedyColoring() {
@@ -190,17 +208,21 @@ int main() {
     g1.addEdge(4, 1);
     g1.addEdge(2, 4);
     cout << "Coloring of graph 1 \n";
-  //  g1.greedyColoring();
-  g1.hillClimbingAlgorithm(1);
 
-   // Graph g2(5);
-   // g2.addEdge(0, 1);
-   // g2.addEdge(0, 2);
-   // g2.addEdge(1, 2);
-   // g2.addEdge(1, 4);
-   // g2.addEdge(2, 4);
-   // g2.addEdge(4, 3);
-   // cout << "\nColoring of graph 2 \n";
-   // g2.greedyColoring();
-   // return 0;
+    g1.hillClimbingAlgorithm(2);
+    cout << endl;
+
+    //  g1.greedyColoring();
+
+    // Graph g2(5);
+    // g2.addEdge(0, 1);
+    // g2.addEdge(0, 2);
+    // g2.addEdge(1, 2);
+    // g2.addEdge(1, 4);
+    // g2.addEdge(2, 4);
+    // g2.addEdge(4, 3);
+    // cout << "\nColoring of graph 2 \n";
+    // g2.greedyColoring();
+    // return 0;
 }
+

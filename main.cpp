@@ -1,7 +1,7 @@
 // A C++ program to implement greedy algorithm for graph coloring
 #include <iostream>
 #include <list>
-
+#include <time.h>
 using namespace std;
 
 // A class that represents an undirected graph
@@ -35,7 +35,13 @@ public:
     int scoreOfAlrorithm(int result[]);
 
 
+
+    // Hillclimbing algorythm.
+    void hillClimbingAlgorithm(int iteracion );
+
+    void whiteout(int result[]);
 };
+
 
 int Graph::colorUsed(int result[]) {
     int max = 0;
@@ -71,9 +77,49 @@ int Graph::colorUsedBad(int *result) {
 
 int Graph::scoreOfAlrorithm(int result[]) {
     int score = (colorUsed(result) + (colorUsed(result) * colorUsedBad(result)));
-    cout << "score of our alrorithm is: " << score << endl;
+   // cout << "score of our alrorithm is: " << score << endl;
     return score;
 }
+// Algorytm gorki
+void Graph::hillClimbingAlgorithm(int iteracion) {
+    srand(time(nullptr));
+    int random[V];
+    int result[V];
+    whiteout(result); // nuclear white
+    for (int x = 0; x < V; x++) random[x] = x;
+
+
+    for (int i = 0; i < iteracion; i++)
+
+        for (int j = 0; j < V; j++) {
+            int stretch = sizeof(random)/sizeof(random[0]);
+            int RanIndex = rand() % stretch;
+            random[RanIndex];
+
+            list<int>::iterator y;
+            for (y = adj[j].begin(); y != adj[j].end(); ++j) {
+                int currentState = scoreOfAlrorithm(result);
+                int currentResult = result[*random];
+                if (result[j] == result[*random])
+                    result[*random] = result[j] + 1;  // if our random point is same as his neihber make him bigger
+                if ((currentState > scoreOfAlrorithm(result) && currentState<0) ||  (currentState < scoreOfAlrorithm(result))){
+                    for (int x = *random; x <= stretch - 1; x++) {
+                        random[x] = random[i + 1];
+                    }
+                    random[stretch - 1] = {};     // deleting point that have been chacked allready from our array.
+                } else result[j]=currentResult;
+
+
+            }
+        }
+    for (int u = 0; u < V; u++)
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+}
+
+
+
+
 
 void Graph::greedyColoring() {
     int result[V];
@@ -125,6 +171,12 @@ void Graph::greedyColoring() {
     printf("There is %d different  colors \n", colorUsed(result) + 1);
 }
 
+void Graph::whiteout(int result[]) {
+    for (int u = 0; u < V; u++)
+        result[u] = 0;
+
+}
+
 
 // Driver program to test above function
 int main() {
@@ -138,17 +190,17 @@ int main() {
     g1.addEdge(4, 1);
     g1.addEdge(2, 4);
     cout << "Coloring of graph 1 \n";
-    g1.greedyColoring();
+  //  g1.greedyColoring();
+  g1.hillClimbingAlgorithm(1);
 
-    Graph g2(5);
-    g2.addEdge(0, 1);
-    g2.addEdge(0, 2);
-    g2.addEdge(1, 2);
-    g2.addEdge(1, 4);
-    g2.addEdge(2, 4);
-    g2.addEdge(4, 3);
-    cout << "\nColoring of graph 2 \n";
-    g2.greedyColoring();
-
-    return 0;
+   // Graph g2(5);
+   // g2.addEdge(0, 1);
+   // g2.addEdge(0, 2);
+   // g2.addEdge(1, 2);
+   // g2.addEdge(1, 4);
+   // g2.addEdge(2, 4);
+   // g2.addEdge(4, 3);
+   // cout << "\nColoring of graph 2 \n";
+   // g2.greedyColoring();
+   // return 0;
 }

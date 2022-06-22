@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <time.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -26,8 +27,7 @@ public:
     // Prints greedy coloring of the vertices
     void greedyColoring();
 
-    // Prints how manny collor was used in coloring
-    int colorUsed(int result[]);
+
 
     // Prints how manny colors where used bad (adjacent color same)
     int colorUsedBad(int *result);
@@ -39,18 +39,36 @@ public:
     // Hillclimbing algorythm.
     void hillClimbingAlgorithm(int iteracion);
 
+    // Nuclear white color
     void whiteout(int result[]);
+
+    // prints how manny unique_colors where ussed
+    int unique_color(int *arr);
 };
 
 
-int Graph::colorUsed(int result[]) {
-    int max = 0;
-    for (int i = 0; i < (sizeof(result) / sizeof(result[0])) + 1; i++) {
-        max = std::max(result[i], max);
-    } // dopiero teraz widze, ze to jest zjebane bo jednak nie koniecznie najwyzej uzyty kolor to liczba kolorow.
-    //  printf ("There is %d different of colors \n",  max+1);
-    return max;
+int Graph::unique_color(int arr[])
+{
+    int counter = 0;
+    sort(arr,arr+V);
+
+    // Finding unique numbers
+    for (int i=0; i<V; i++)
+    {
+        if(arr[i]==arr[i+1])
+        {
+            continue;
+        }
+        else
+        {
+            cout<<arr[i]<<" ";
+            counter++;
+        }
+    }
+    return counter;
 }
+
+
 
 void Graph::addEdge(int v, int w) {
     adj[v].push_back(w);
@@ -79,7 +97,7 @@ int Graph::colorUsedBad(int *result) {
 }
 
 int Graph::scoreOfAlrorithm(int result[]) {
-    int score = (colorUsed(result) - (colorUsed(result) * colorUsedBad(result)));
+    int score = (unique_color(result) - (unique_color(result) * unique_color(result)));
 
     // cout << "score of our alrorithm is: " << score << endl;
     return score;
@@ -104,10 +122,10 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
             list<int>::iterator y;
             for (y = adj[j].begin(); y != adj[j].end(); ++y) {
                 int currentState = scoreOfAlrorithm(result);
-                cout << currentState << " Currentscore\n";
+               // cout << currentState << " Currentscore\n";
 
                 int currentResult = result[randNumber];
-                cout << currentResult << " Currentpoints\n";
+              //  cout << currentResult << " Currentpoints\n";
 
                 if (result[j] == result[randNumber]) {
                     if (currentState > 0 && result[j] - 1 != result[randNumber] - 1) {
@@ -135,7 +153,7 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
              << result[u] << endl;
     }
     cout << scoreOfAlrorithm(result) << endl;
-    printf("There is %d different  colors \n", colorUsed(result) + 1);
+    printf("There is %d different  colors \n", unique_color(result) + 1);
 }
 
 
@@ -186,7 +204,14 @@ void Graph::greedyColoring() {
              << result[u] << endl;
 
     scoreOfAlrorithm(result);
-    printf("There is %d different  colors \n", colorUsed(result) + 1);
+    printf("There is %d different  colors \n", unique_color(result) + 1);
+    cout << "test \n" << unique_color(result);
+
+
+
+
+    cout <<"size z funkcji \n" << unique_color(reinterpret_cast<int *>(&result));
+
 }
 
 void Graph::whiteout(int result[]) {
@@ -209,20 +234,19 @@ int main() {
     g1.addEdge(2, 4);
     cout << "Coloring of graph 1 \n";
 
-    g1.hillClimbingAlgorithm(2);
+
+   // g1.hillClimbingAlgorithm(2);
     cout << endl;
 
-    //  g1.greedyColoring();
-
-    // Graph g2(5);
-    // g2.addEdge(0, 1);
-    // g2.addEdge(0, 2);
-    // g2.addEdge(1, 2);
-    // g2.addEdge(1, 4);
-    // g2.addEdge(2, 4);
-    // g2.addEdge(4, 3);
-    // cout << "\nColoring of graph 2 \n";
-    // g2.greedyColoring();
-    // return 0;
+    g1.greedyColoring();
+    Graph g2(5);
+    g2.addEdge(0, 1);
+    g2.addEdge(0, 2);
+    g2.addEdge(1, 2);
+    g2.addEdge(1, 4);
+    g2.addEdge(2, 4);
+    g2.addEdge(4, 3);
+    cout << "\nColoring of graph 2 \n";
+    g2.greedyColoring();
+    return 0;
 }
-

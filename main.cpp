@@ -44,9 +44,14 @@ public:
 
     // prints how manny unique_colors where ussed
     int unique_color(int *arr);
+
+    void displayAdjList(list<int> *adj_list, int v);
 };
 
-
+void Graph::addEdge(int v, int w) {
+    adj[v].push_back(w);
+    adj[w].push_back(v); // Note: the graph is undirected
+}
 int Graph::unique_color(int arr[])
 {
     int counter = 0;
@@ -61,7 +66,7 @@ int Graph::unique_color(int arr[])
         }
         else
         {
-            cout<<arr[i]<<" ";
+           // cout<<arr[i]<<" ";
             counter++;
         }
     }
@@ -69,11 +74,17 @@ int Graph::unique_color(int arr[])
 }
 
 
-
-void Graph::addEdge(int v, int w) {
-    adj[v].push_back(w);
-    adj[w].push_back(v); // Note: the graph is undirected
+void Graph::displayAdjList(list<int> adj_list[], int v) {
+    for(int i = 0; i<v; i++) {
+        cout << i << "--->";
+        list<int> :: iterator it;
+        for(it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
+            cout << *it << " ";
+        }
+        cout << endl;
+    }
 }
+
 
 
 int Graph::colorUsedBad(int *result) {
@@ -188,7 +199,7 @@ void Graph::greedyColoring() {
         int cr;
         for (cr = 0; cr < V; cr++)
 
-            if (available[cr] == false) {
+            if (!available[cr]) {
                 break;
             }
         result[u] = cr; // Assign the found color
@@ -204,13 +215,14 @@ void Graph::greedyColoring() {
              << result[u] << endl;
 
     scoreOfAlrorithm(result);
-    printf("There is %d different  colors \n", unique_color(result) + 1);
-    cout << "test \n" << unique_color(result);
+    printf("There is %d different  colors \n", unique_color(result));
 
+cout << " wyswietlanie listy: ";
+     displayAdjList(adj,V);
+     cout << "po liscie \n";
 
-
-
-    cout <<"size z funkcji \n" << unique_color(reinterpret_cast<int *>(&result));
+    for (auto x : *adj)
+        std::cout <<"test listy: " << x << "\n";
 
 }
 
@@ -233,6 +245,7 @@ int main() {
     g1.addEdge(4, 1);
     g1.addEdge(2, 4);
     cout << "Coloring of graph 1 \n";
+
 
 
    // g1.hillClimbingAlgorithm(2);

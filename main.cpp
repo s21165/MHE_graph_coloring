@@ -28,7 +28,6 @@ public:
     void greedyColoring();
 
 
-
     // Prints how manny colors where used bad (adjacent color same)
     int colorUsedBad(int *result);
 
@@ -52,21 +51,17 @@ void Graph::addEdge(int v, int w) {
     adj[v].push_back(w);
     adj[w].push_back(v); // Note: the graph is undirected
 }
-int Graph::unique_color(int arr[])
-{
+
+int Graph::unique_color(int arr[]) {
     int counter = 0;
-    sort(arr,arr+V);
+    sort(arr, arr + V);
 
     // Finding unique numbers
-    for (int i=0; i<V; i++)
-    {
-        if(arr[i]==arr[i+1])
-        {
+    for (int i = 0; i < V; i++) {
+        if (arr[i] == arr[i + 1]) {
             continue;
-        }
-        else
-        {
-           // cout<<arr[i]<<" ";
+        } else {
+            // cout<<arr[i]<<" ";
             counter++;
         }
     }
@@ -74,30 +69,24 @@ int Graph::unique_color(int arr[])
 }
 
 
-
 void Graph::displayAdjList(list<int> adj_list[], int v) {
-    int maxNodesConnected =0;
-    int nodes[V]={0};
-    for(int i = 0; i<v; i++) {
+    int maxNodesConnected = 0;
+    int nodes[V] = {0};
+    for (int i = 0; i < v; i++) {
         cout << i << "--->";
-        list<int> :: iterator it;
-        for(it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
+        list<int>::iterator it;
+        for (it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
             nodes[i]++;
 
             cout << *it << " ";
         }
         cout << endl;
+        maxNodesConnected = max(maxNodesConnected, i);
     }
-    for (int i = 0; i<sizeof(nodes)/sizeof(nodes[0]); ++i)
-    {
-        maxNodesConnected= max(maxNodesConnected,i);
-        cout <<"nodes with number "<< i << " appears: "<< nodes[i] << endl;
-        cout <<"maximum connection in noddes: " << maxNodesConnected;
+    cout << "maximum connection in noddes: " << maxNodesConnected;
 
-    }
 
 }
-
 
 
 int Graph::colorUsedBad(int *result) {
@@ -146,10 +135,10 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
             list<int>::iterator y;
             for (y = adj[j].begin(); y != adj[j].end(); ++y) {
                 int currentState = scoreOfAlrorithm(result);
-               // cout << currentState << " Currentscore\n";
+                // cout << currentState << " Currentscore\n";
 
                 int currentResult = result[randNumber];
-              //  cout << currentResult << " Currentpoints\n";
+                //  cout << currentResult << " Currentpoints\n";
 
                 if (result[j] == result[randNumber]) {
                     if (currentState > 0 && result[j] - 1 != result[randNumber] - 1) {
@@ -230,7 +219,11 @@ void Graph::greedyColoring() {
     scoreOfAlrorithm(result);
     printf("There is %d different  colors \n", unique_color(result));
 
-    
+    cout << " wyswietlanie polaczen : \n";
+    displayAdjList(adj, V);
+   
+
+
 }
 
 void Graph::whiteout(int result[]) {
@@ -254,19 +247,19 @@ int main() {
     cout << "Coloring of graph 1 \n";
 
 
-g1.greedyColoring();
-   // g1.hillClimbingAlgorithm(2);
+    g1.greedyColoring();
+    // g1.hillClimbingAlgorithm(2);
     cout << endl;
 
-  //  g1.greedyColoring();
-  //  Graph g2(5);
-  //  g2.addEdge(0, 1);
-  //  g2.addEdge(0, 2);
-  //  g2.addEdge(1, 2);
-  //  g2.addEdge(1, 4);
-  //  g2.addEdge(2, 4);
-  //  g2.addEdge(4, 3);
-  //  cout << "\nColoring of graph 2 \n";
-  //  g2.greedyColoring();
-  //  return 0;
+    //  g1.greedyColoring();
+    //  Graph g2(5);
+    //  g2.addEdge(0, 1);
+    //  g2.addEdge(0, 2);
+    //  g2.addEdge(1, 2);
+    //  g2.addEdge(1, 4);
+    //  g2.addEdge(2, 4);
+    //  g2.addEdge(4, 3);
+    //  cout << "\nColoring of graph 2 \n";
+    //  g2.greedyColoring();
+    //  return 0;
 }

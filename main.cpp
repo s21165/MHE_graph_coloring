@@ -230,13 +230,7 @@ void Graph::greedyColoring() {
     scoreOfAlrorithm(result);
     printf("There is %d different  colors \n", unique_color(result));
 
-cout << " wyswietlanie listy: \n";
-     displayAdjList(adj,V);
-     cout << "po liscie \n";
-
-    for (auto x : *adj)
-        std::cout <<"test listy: " << x << "\n";
-
+    
 }
 
 void Graph::whiteout(int result[]) {

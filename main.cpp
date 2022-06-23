@@ -45,12 +45,16 @@ public:
     int unique_color(int *arr);
 
     void displayAdjList(list<int> *adj_list, int v);
+
+
+    int badConnections(list<int> *adj_list, int v, int *result);
 };
 
 void Graph::addEdge(int v, int w) {
     adj[v].push_back(w);
     adj[w].push_back(v); // Note: the graph is undirected
 }
+
 
 int Graph::unique_color(int arr[]) {
     int counter = 0;
@@ -77,17 +81,28 @@ void Graph::displayAdjList(list<int> adj_list[], int v) {
         list<int>::iterator it;
         for (it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
             nodes[i]++;
-
             cout << *it << " ";
         }
         cout << endl;
         maxNodesConnected = max(maxNodesConnected, i);
     }
     cout << "maximum connection in noddes: " << maxNodesConnected;
-
-
 }
 
+int Graph::badConnections(list<int> *adj_list, int v, int result[]) {
+    int bad = 0;
+
+    for (int i = 0; i < v; i++) {
+        list<int>::iterator it;
+        for (it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
+            if (result[i] == result[*it]) {
+                cout <<"\n kolor: " <<result[i] <<" na miejscu: " << i <<" jest taki sam jak kolor "<< result[*it] << " na pozycji: " << *it;
+                bad++;
+            }
+        }
+    }
+    return bad;
+}
 
 int Graph::colorUsedBad(int *result) {
     bool goodColor[V];
@@ -172,6 +187,7 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
 
 void Graph::greedyColoring() {
     int result[V];
+    int backup[V];
 
     // Assign the first color to first vertex
     result[0] = 0;
@@ -212,19 +228,21 @@ void Graph::greedyColoring() {
     }
 
     // print the result
-    for (int u = 0; u < V; u++)
+    for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
-
-    scoreOfAlrorithm(result);
-    printf("There is %d different  colors \n", unique_color(result));
+        backup[u]=result[u];
+    }
+   // scoreOfAlrorithm(result);
+    printf("There is %d different  colors \n", unique_color(backup));
 
     cout << " wyswietlanie polaczen : \n";
     displayAdjList(adj, V);
-   
 
+    cout <<  " \n bad connection are: "  << badConnections(adj,V,result) << endl;
 
 }
+
 
 void Graph::whiteout(int result[]) {
     for (int u = 0; u < V; u++)

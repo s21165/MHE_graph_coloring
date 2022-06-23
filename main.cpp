@@ -28,9 +28,6 @@ public:
     void greedyColoring();
 
 
-    // Prints how manny colors where used bad (adjacent color same)
-    int colorUsedBad(int *result);
-
     // Function that scores how well our alrorithm did, if score is bellow 0 the alrorithm placed colors wrong(neighbor have same color). If else the score give us how manny colors were diffrent colors were used.
     int scoreOfAlrorithm(int result[]);
 
@@ -44,10 +41,10 @@ public:
     // prints how manny unique_colors where ussed
     int unique_color(int *arr);
 
-    void displayAdjList(list<int> *adj_list, int v);
-
 
     int badConnections(list<int> *adj_list, int v, int *result);
+
+    int adjListNodes(list<int> *adj_list, int v);
 };
 
 void Graph::addEdge(int v, int w) {
@@ -55,14 +52,18 @@ void Graph::addEdge(int v, int w) {
     adj[w].push_back(v); // Note: the graph is undirected
 }
 
-
 int Graph::unique_color(int arr[]) {
     int counter = 0;
-    sort(arr, arr + V);
+    int backup[V];
 
-    // Finding unique numbers
+    for (int u = 0; u < V; u++) {
+        backup[u] = arr[u];
+    }
+    sort(backup, backup + V);
+
+    //  Finding unique numbers
     for (int i = 0; i < V; i++) {
-        if (arr[i] == arr[i + 1]) {
+        if (backup[i] == backup[i + 1]) {
             continue;
         } else {
             // cout<<arr[i]<<" ";
@@ -72,21 +73,21 @@ int Graph::unique_color(int arr[]) {
     return counter;
 }
 
-
-void Graph::displayAdjList(list<int> adj_list[], int v) {
+int Graph::adjListNodes(list<int> adj_list[], int v) {
     int maxNodesConnected = 0;
     int nodes[V] = {0};
     for (int i = 0; i < v; i++) {
-        cout << i << "--->";
+        //    cout << i << "--->";
         list<int>::iterator it;
         for (it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
             nodes[i]++;
-            cout << *it << " ";
+            //      cout << *it << " ";
         }
-        cout << endl;
+        //    cout << endl;
         maxNodesConnected = max(maxNodesConnected, i);
     }
-    cout << "maximum connection in noddes: " << maxNodesConnected;
+    // cout << "maximum connection in noddes: " << maxNodesConnected;
+    return maxNodesConnected;
 }
 
 int Graph::badConnections(list<int> *adj_list, int v, int result[]) {
@@ -96,7 +97,8 @@ int Graph::badConnections(list<int> *adj_list, int v, int result[]) {
         list<int>::iterator it;
         for (it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
             if (result[i] == result[*it]) {
-                cout <<"\n kolor: " <<result[i] <<" na miejscu: " << i <<" jest taki sam jak kolor "<< result[*it] << " na pozycji: " << *it;
+                //cout << "\n kolor: " << result[i] << " na miejscu: " << i << " jest taki sam jak kolor " << result[*it]
+                //  << " na pozycji: " << *it;
                 bad++;
             }
         }
@@ -104,28 +106,9 @@ int Graph::badConnections(list<int> *adj_list, int v, int result[]) {
     return bad;
 }
 
-int Graph::colorUsedBad(int *result) {
-    bool goodColor[V];
-
-    for (int u = 0; u < V; u++) {
-        goodColor[u] = true;
-
-        list<int>::iterator i;
-        for (i = adj[u].begin(); i != adj[u].end(); ++i) {
-            if (result[*i] != -1 && result[*i] == result[u])
-                goodColor[result[u]] = false;
-        }
-    }
-    int sum = 0;
-    for (auto const &value: goodColor) {
-        sum += value;
-
-    }
-    return sum - V;
-}
-
 int Graph::scoreOfAlrorithm(int result[]) {
-    int score = (unique_color(result) - (unique_color(result) * unique_color(result)));
+    //int score = (unique_color(result) - (unique_color(result) * unique_color(result)));
+    int score = (badConnections(adj, V, result) + unique_color(result));
 
     // cout << "score of our alrorithm is: " << score << endl;
     return score;
@@ -134,60 +117,41 @@ int Graph::scoreOfAlrorithm(int result[]) {
 // Algorytm gorki
 void Graph::hillClimbingAlgorithm(int iteracion) {
     srand(time(nullptr));
-    int random[V - 1];
-    int result[V - 1];
+    int randomColor;
+    int result[V];
+    int currentState;
+    int backup[V];
     whiteout(result); // nuclear white
-    for (int x = 0; x < V - 1; x++) random[x] = x;
 
-
-    for (int i = 0; i < iteracion; i++)
-
-        for (int j = 0; j < V - 1; j++) {
-            int stretch = sizeof(random) / sizeof(random[0]);
-            int RanIndex = (rand() % stretch - 1);
-            int randNumber = random[RanIndex];
-
-            list<int>::iterator y;
-            for (y = adj[j].begin(); y != adj[j].end(); ++y) {
-                int currentState = scoreOfAlrorithm(result);
-                // cout << currentState << " Currentscore\n";
-
-                int currentResult = result[randNumber];
-                //  cout << currentResult << " Currentpoints\n";
-
-                if (result[j] == result[randNumber]) {
-                    if (currentState > 0 && result[j] - 1 != result[randNumber] - 1) {
-                        result[randNumber] = result[randNumber] - 1;
-                    }
-                    result[randNumber] =
-                            result[randNumber] + 1;  // if our random point is same as his neihber make him bigger
-                }
-
-                if ((currentState > scoreOfAlrorithm(result) && currentState <= 0) ||
-                    (currentState >= 0 && currentState < scoreOfAlrorithm(result))) {
-                    for (int x = *random; x <= stretch - 1; x++) {
-                        random[x] = random[i + 1];
-                    }
-
-                    random[stretch - 1] = {};     // deleting point that have been chacked allready from our array.
-                }
-                result[randNumber] = currentResult;
-
-
+    for (int i = 0; i < iteracion; i++) {
+        for (int u = 0; u < V; u++) {
+            backup[u] = result[u];
+        }
+        currentState = scoreOfAlrorithm(result);
+        for (int x = 0; x < V; x++) {
+            randomColor = (rand() % adjListNodes(adj, V));
+            result[x] = randomColor;
+        }
+        if (currentState < scoreOfAlrorithm(result)) {
+            for (int u = 0; u < V; u++) {
+                result[u] = backup[u];
             }
         }
+    }
+
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
     }
-    cout << scoreOfAlrorithm(result) << endl;
-    printf("There is %d different  colors \n", unique_color(result) + 1);
+    printf("There is %d different  colors \n", unique_color(result));
+    cout << " \n Wrong connection happend" << badConnections(adj, V, result) << endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result);
+
 }
 
 
 void Graph::greedyColoring() {
     int result[V];
-    int backup[V];
 
     // Assign the first color to first vertex
     result[0] = 0;
@@ -231,15 +195,15 @@ void Graph::greedyColoring() {
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
-        backup[u]=result[u];
     }
-   // scoreOfAlrorithm(result);
-    printf("There is %d different  colors \n", unique_color(backup));
+    // scoreOfAlrorithm(result);
+    printf("There is %d different  colors \n", unique_color(result));
 
     cout << " wyswietlanie polaczen : \n";
-    displayAdjList(adj, V);
+    adjListNodes(adj, V);
 
-    cout <<  " \n bad connection are: "  << badConnections(adj,V,result) << endl;
+    cout << " \n bad connection are: " << badConnections(adj, V, result) << endl;
+    cout << "Nasz algorytm uzyskal ocene: " << scoreOfAlrorithm(result);
 
 }
 
@@ -265,19 +229,19 @@ int main() {
     cout << "Coloring of graph 1 \n";
 
 
-    g1.greedyColoring();
-    // g1.hillClimbingAlgorithm(2);
+    //g1.greedyColoring();
+    g1.hillClimbingAlgorithm(100);
     cout << endl;
 
-    //  g1.greedyColoring();
-    //  Graph g2(5);
-    //  g2.addEdge(0, 1);
-    //  g2.addEdge(0, 2);
-    //  g2.addEdge(1, 2);
-    //  g2.addEdge(1, 4);
-    //  g2.addEdge(2, 4);
-    //  g2.addEdge(4, 3);
-    //  cout << "\nColoring of graph 2 \n";
-    //  g2.greedyColoring();
-    //  return 0;
+    // g1.greedyColoring();
+    // Graph g2(5);
+    // g2.addEdge(0, 1);
+    // g2.addEdge(0, 2);
+    // g2.addEdge(1, 2);
+    // g2.addEdge(1, 4);
+    // g2.addEdge(2, 4);
+    // g2.addEdge(4, 3);
+    // cout << "\nColoring of graph 2 \n";
+    // g2.hillClimbingAlgorithm(100);
+    return 0;
 }

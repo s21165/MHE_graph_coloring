@@ -48,7 +48,9 @@ public:
 
     void hillClimbingAlgorithmBestPoint(int iteracion);
 
-    int worstPointColor( int *result,int worstPoints[]);
+    void tabuSearch(int iteracion, int tabuSize);
+
+    int worstPointColor(int *result, int worstPoints[]);
 };
 
 void Graph::addEdge(int v, int w) {
@@ -75,6 +77,13 @@ int Graph::unique_color(int arr[]) {
         }
     }
     return counter;
+}
+
+
+void Graph::whiteout(int result[]) {
+    for (int u = 0; u < V; u++)
+        result[u] = 0;
+
 }
 
 int Graph::adjListNodes(list<int> adj_list[], int v) {
@@ -134,6 +143,7 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
         currentState = scoreOfAlrorithm(result);
         for (int x = 0; x < V; x++) {
             randomColor = (rand() % adjListNodes(adj, V));
+
             result[x] = randomColor;
         }
         if (currentState < scoreOfAlrorithm(result)) {
@@ -208,15 +218,8 @@ void Graph::greedyColoring() {
 
     cout << " \n bad connection are: " << badConnections(adj, V, result) << endl;
     cout << "Nasz algorytm uzyskal ocene: " << scoreOfAlrorithm(result);
-
 }
 
-
-void Graph::whiteout(int result[]) {
-    for (int u = 0; u < V; u++)
-        result[u] = 0;
-
-}
 
 void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
     srand(time(nullptr));
@@ -228,17 +231,17 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
     whiteout(result); // nuclear white
     whiteout(badPoints);
 
-
     for (int i = 0; i < iteracion; i++) {
         for (int u = 0; u < V; u++) {
             backup[u] = result[u];
         }
         currentState = scoreOfAlrorithm(result);
         for (int x = 0; x < V; x++) {
-            worstPointColor(result,badPoints);
+            worstPointColor(result, badPoints);
 
             randomColor = (rand() % adjListNodes(adj, V));
-            if (badPoints[x]!=0)       {
+            if (badPoints[x] != 0) {
+                while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
                 result[x] = randomColor;
 
             }
@@ -255,12 +258,9 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
              << result[u] << endl;
     }
     printf("There is %d different  colors \n", unique_color(result));
-    cout << " \n Wrong connection happend:  " << badConnections(adj, V, result) <<" times"<< endl;
-    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result)<< endl;
+    cout << " \n Wrong connection happend:  " << badConnections(adj, V, result) << " times" << endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result) << endl;
     whiteout(result);
-
-    worstPointColor(result,badPoints);
-
 }
 
 int Graph::worstPointColor(int *result, int *worstPoints) {
@@ -274,9 +274,61 @@ int Graph::worstPointColor(int *result, int *worstPoints) {
             }
         }
     }
-
-
     return 0;
+
+}
+
+void Graph::tabuSearch(int iteracion, int tabuSize) {
+    srand(time(nullptr));
+    int randomColor;
+    int result[V];
+    int currentState;
+    int backup[V];
+    string tabuList[tabuSize];
+    int badPoints[V];
+    bool isTabu;
+
+
+    whiteout(result); // nuclear white
+    whiteout(badPoints);
+
+
+    for (int i = 0; i < iteracion; i++) {
+        isTabu = false;
+
+        for (int u = 0; u < V; u++) {
+            backup[u] = result[u];
+        }
+        currentState = scoreOfAlrorithm(result);
+        for (int x = 0; x < V; x++) {
+
+
+            randomColor = (rand() % adjListNodes(adj, V));
+            result[x] = randomColor;
+            tabuList[i % tabuSize] += to_string(randomColor);
+        }
+        for (int y = 0; y < i; y++) {
+            if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
+                isTabu = true;
+                //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
+
+            }
+        }
+        if (currentState < scoreOfAlrorithm(result) && isTabu) {
+            for (int u = 0; u < V; u++) {
+                result[u] = backup[u];
+            }
+        }
+    }
+
+    for (int u = 0; u < V; u++) {
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+    }
+    printf("There is %d different  colors \n", unique_color(result));
+    cout << " \n Wrong connection happend:  " << badConnections(adj, V, result) << " times" << endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result) << endl;
+
 
 }
 
@@ -297,7 +349,8 @@ int main() {
 
     //g1.greedyColoring();
     // g1.hillClimbingAlgorithm(100);
-    g1.hillClimbingAlgorithmBestPoint(100);
+    // g1.hillClimbingAlgorithmBestPoint(1);
+    g1.tabuSearch(40, 10);
     cout << endl;
 
     // g1.greedyColoring();

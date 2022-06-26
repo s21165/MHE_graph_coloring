@@ -45,6 +45,10 @@ public:
     int badConnections(list<int> *adj_list, int v, int *result);
 
     int adjListNodes(list<int> *adj_list, int v);
+
+    void hillClimbingAlgorithmBestPoint(int iteracion);
+
+    int worstPointColor( int *result,int worstPoints[]);
 };
 
 void Graph::addEdge(int v, int w) {
@@ -214,6 +218,68 @@ void Graph::whiteout(int result[]) {
 
 }
 
+void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
+    srand(time(nullptr));
+    int randomColor;
+    int result[V];
+    int currentState;
+    int backup[V];
+    int badPoints[V];
+    whiteout(result); // nuclear white
+    whiteout(badPoints);
+
+
+    for (int i = 0; i < iteracion; i++) {
+        for (int u = 0; u < V; u++) {
+            backup[u] = result[u];
+        }
+        currentState = scoreOfAlrorithm(result);
+        for (int x = 0; x < V; x++) {
+            worstPointColor(result,badPoints);
+
+            randomColor = (rand() % adjListNodes(adj, V));
+            if (badPoints[x]!=0)       {
+                result[x] = randomColor;
+
+            }
+        }
+        if (currentState < scoreOfAlrorithm(result)) {
+            for (int u = 0; u < V; u++) {
+                result[u] = backup[u];
+            }
+        }
+    }
+
+    for (int u = 0; u < V; u++) {
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+    }
+    printf("There is %d different  colors \n", unique_color(result));
+    cout << " \n Wrong connection happend:  " << badConnections(adj, V, result) <<" times"<< endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result)<< endl;
+    whiteout(result);
+
+    worstPointColor(result,badPoints);
+
+}
+
+int Graph::worstPointColor(int *result, int *worstPoints) {
+    whiteout(worstPoints);
+    for (int i = 0; i < V; i++) {
+        list<int>::iterator it;
+        for (it = adj[i].begin(); it != adj[i].end(); ++it) {
+            if (result[i] == result[*it]) {
+                worstPoints[i]++;
+
+            }
+        }
+    }
+
+
+    return 0;
+
+}
+
 
 // Driver program to test above function
 int main() {
@@ -230,7 +296,8 @@ int main() {
 
 
     //g1.greedyColoring();
-    g1.hillClimbingAlgorithm(100);
+    // g1.hillClimbingAlgorithm(100);
+    g1.hillClimbingAlgorithmBestPoint(100);
     cout << endl;
 
     // g1.greedyColoring();

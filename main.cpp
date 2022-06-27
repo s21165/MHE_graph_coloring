@@ -42,13 +42,15 @@ public:
     int unique_color(int *arr);
 
 
-    int badConnections(list<int> *adj_list, int v, int *result);
+    int badConnections(int *result);
 
     int adjListNodes(list<int> *adj_list, int v);
 
     void hillClimbingAlgorithmBestPoint(int iteracion);
 
     void tabuSearch(int iteracion, int tabuSize);
+
+    void tabuSearchBack(int iteracion, int tabuSize);
 
     int worstPointColor(int *result, int worstPoints[]);
 };
@@ -103,12 +105,12 @@ int Graph::adjListNodes(list<int> adj_list[], int v) {
     return maxNodesConnected;
 }
 
-int Graph::badConnections(list<int> *adj_list, int v, int result[]) {
+int Graph::badConnections(int result[]) {
     int bad = 0;
 
-    for (int i = 0; i < v; i++) {
+    for (int i = 0; i < V; i++) {
         list<int>::iterator it;
-        for (it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
+        for (it = adj[i].begin(); it != adj[i].end(); ++it) {
             if (result[i] == result[*it]) {
                 //cout << "\n kolor: " << result[i] << " na miejscu: " << i << " jest taki sam jak kolor " << result[*it]
                 //  << " na pozycji: " << *it;
@@ -121,11 +123,27 @@ int Graph::badConnections(list<int> *adj_list, int v, int result[]) {
 
 int Graph::scoreOfAlrorithm(int result[]) {
     //int score = (unique_color(result) - (unique_color(result) * unique_color(result)));
-    int score = (badConnections(adj, V, result) + unique_color(result));
+    int score = (badConnections(result) + unique_color(result));
 
     // cout << "score of our alrorithm is: " << score << endl;
     return score;
 }
+
+int Graph::worstPointColor(int *result, int *worstPoints) {
+    whiteout(worstPoints);
+    for (int i = 0; i < V; i++) {
+        list<int>::iterator it;
+        for (it = adj[i].begin(); it != adj[i].end(); ++it) {
+            if (result[i] == result[*it]) {
+                worstPoints[i]++;
+
+            }
+        }
+    }
+    return 0;
+
+}
+
 
 // Algorytm gorki
 void Graph::hillClimbingAlgorithm(int iteracion) {
@@ -158,7 +176,7 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
              << result[u] << endl;
     }
     printf("There is %d different  colors \n", unique_color(result));
-    cout << " \n Wrong connection happend" << badConnections(adj, V, result) << endl;
+    cout << " \n Wrong connection happend" << badConnections(result) << endl;
     cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result);
 
 }
@@ -216,7 +234,7 @@ void Graph::greedyColoring() {
     cout << " wyswietlanie polaczen : \n";
     adjListNodes(adj, V);
 
-    cout << " \n bad connection are: " << badConnections(adj, V, result) << endl;
+    cout << " \n bad connection are: " << badConnections(result) << endl;
     cout << "Nasz algorytm uzyskal ocene: " << scoreOfAlrorithm(result);
 }
 
@@ -237,7 +255,7 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
         }
         currentState = scoreOfAlrorithm(result);
         for (int x = 0; x < V; x++) {
-            worstPointColor(result, badPoints);
+            worstPointColor(result, badPoints); // changing value of badPoits if point have bad neighbor.
 
             randomColor = (rand() % adjListNodes(adj, V));
             if (badPoints[x] != 0) {
@@ -258,25 +276,11 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
              << result[u] << endl;
     }
     printf("There is %d different  colors \n", unique_color(result));
-    cout << " \n Wrong connection happend:  " << badConnections(adj, V, result) << " times" << endl;
+    cout << " \n Wrong connection happend:  " << badConnections(result) << " times" << endl;
     cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result) << endl;
     whiteout(result);
 }
 
-int Graph::worstPointColor(int *result, int *worstPoints) {
-    whiteout(worstPoints);
-    for (int i = 0; i < V; i++) {
-        list<int>::iterator it;
-        for (it = adj[i].begin(); it != adj[i].end(); ++it) {
-            if (result[i] == result[*it]) {
-                worstPoints[i]++;
-
-            }
-        }
-    }
-    return 0;
-
-}
 
 void Graph::tabuSearch(int iteracion, int tabuSize) {
     srand(time(nullptr));
@@ -299,18 +303,27 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
         for (int u = 0; u < V; u++) {
             backup[u] = result[u];
         }
+
         currentState = scoreOfAlrorithm(result);
         for (int x = 0; x < V; x++) {
 
 
             randomColor = (rand() % adjListNodes(adj, V));
-            result[x] = randomColor;
+            if (badPoints[x] !=
+                0) { // my normal solusion is to randomly select all colors, but then all solusion are neighbor's, but now we only are changing bad points so going back to tabu makes sense
+                while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
+                result[x] = randomColor;
+
+            };
             tabuList[i % tabuSize] += to_string(randomColor);
+        }
+        if (i > tabuSize) {  // when tabu list is full we begin to clean old tabu
+            tabuList[i % tabuSize] = "";
         }
         for (int y = 0; y < i; y++) {
             if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
                 isTabu = true;
-                //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
+                //       cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize] << endl;
 
             }
         }
@@ -326,7 +339,87 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
              << result[u] << endl;
     }
     printf("There is %d different  colors \n", unique_color(result));
-    cout << " \n Wrong connection happend:  " << badConnections(adj, V, result) << " times" << endl;
+    cout << " \n Wrong connection happend:  " << badConnections(result) << " times" << endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result) << endl;
+
+
+}
+
+
+void Graph::tabuSearchBack(int iteracion, int tabuSize) {
+    srand(time(nullptr));
+    int randomColor;
+    int result[V];
+    int bestResult[V];
+    int currentState;
+    int backup[V];
+    string tabuList[tabuSize];
+    int badPoints[V];
+    bool isTabu;
+
+
+    whiteout(result); // nuclear white
+    whiteout(badPoints);
+    whiteout(bestResult);
+
+
+    for (int i = 0; i < iteracion; i++) {
+        isTabu = false;
+
+        for (int u = 0; u < V; u++) {
+            backup[u] = result[u];
+        }
+        if (badConnections(result) ==
+            0)  // if we don't have bad connection let's go back to tabu and try to go from there
+        {
+            for (int u = 0; u < V; u++) {
+                backup[u] = result[u];
+            }
+        }
+        currentState = scoreOfAlrorithm(result);
+        for (int x = 0; x < V; x++) {
+
+
+            randomColor = (rand() % adjListNodes(adj, V));
+            result[x] = randomColor;
+            tabuList[i % tabuSize] += to_string(randomColor);
+        }
+        if (i > tabuSize) {  // when tabulsit is full we begin to clean old tabu
+            tabuList[i % tabuSize] = "";
+        }
+        for (int y = 0; y < i; y++) {
+            if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
+                isTabu = true;
+                //       cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize] << endl;
+
+            }
+        }
+        if (currentState < scoreOfAlrorithm(result) && isTabu) {
+            for (int u = 0; u < V; u++) {
+                result[u] = backup[u];
+                if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestResult)) {
+                    bestResult[u] = result[u];
+                }
+
+            }
+        }
+        if (i == iteracion) {
+            for (int u = 0; u < V; u++) { // if we don't have more iteracion let's use bestResult as answer.
+                result[u] = bestResult[u];
+            }
+        }
+    }
+
+    for (int u = 0; u < V; u++) {
+        backup[u] = result[u];
+    }
+
+    for (int u = 0; u < V; u++) {
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+    }
+    printf("There is %d different  colors \n", unique_color(result));
+    cout << " \n Wrong connection happend:  " << badConnections(result) << " times" << endl;
     cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result) << endl;
 
 
@@ -350,7 +443,8 @@ int main() {
     //g1.greedyColoring();
     // g1.hillClimbingAlgorithm(100);
     // g1.hillClimbingAlgorithmBestPoint(1);
-    g1.tabuSearch(40, 10);
+    //g1.tabuSearch(40, 10);
+    g1.tabuSearchBack(40, 10);
     cout << endl;
 
     // g1.greedyColoring();

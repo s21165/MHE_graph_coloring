@@ -243,32 +243,44 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
     srand(time(nullptr));
     int randomColor;
     int result[V];
-    int currentState;
+    int bestNeighbor[V];
     int backup[V];
     int badPoints[V];
     whiteout(result); // nuclear white
     whiteout(badPoints);
+    whiteout(bestNeighbor);
 
     for (int i = 0; i < iteracion; i++) {
+
         for (int u = 0; u < V; u++) {
             backup[u] = result[u];
         }
-        currentState = scoreOfAlrorithm(result);
-        for (int x = 0; x < V; x++) {
-            worstPointColor(result, badPoints); // changing value of badPoits if point have bad neighbor.
+        for (int y = 1; y < 5; y++) {
 
-            randomColor = (rand() % adjListNodes(adj, V));
-            if (badPoints[x] != 0) {
-                while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
-                result[x] = randomColor;
+            for (int x = 0; x < V; x++) {
+                worstPointColor(result, badPoints); // changing value of badPoits if point have bad neighbor.
 
+                randomColor = (rand() % adjListNodes(adj, V));
+                if (badPoints[x] != 0) {
+                    while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
+                    result[x] = randomColor;
+
+                    if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestNeighbor)) {
+                        bestNeighbor[x] = result[x];
+                    }
+
+
+                }
             }
         }
-        if (currentState < scoreOfAlrorithm(result)) {
-            for (int u = 0; u < V; u++) {
-                result[u] = backup[u];
-            }
+        for (int u = 0; u < V; u++) {
+            result[u] = bestNeighbor[u];
         }
+        // if (currentState < scoreOfAlrorithm(result)) {
+        //     for (int u = 0; u < V; u++) {
+        //         result[u] = backup[u];
+        //     }
+        // }
     }
 
     for (int u = 0; u < V; u++) {
@@ -281,20 +293,20 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
     whiteout(result);
 }
 
-
 void Graph::tabuSearch(int iteracion, int tabuSize) {
     srand(time(nullptr));
     int randomColor;
     int result[V];
-    int currentState;
     int backup[V];
     string tabuList[tabuSize];
     int badPoints[V];
     bool isTabu;
+    int bestNeighbor[V];
 
 
     whiteout(result); // nuclear white
     whiteout(badPoints);
+    whiteout(bestNeighbor);
 
 
     for (int i = 0; i < iteracion; i++) {
@@ -303,37 +315,43 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
         for (int u = 0; u < V; u++) {
             backup[u] = result[u];
         }
+        for (int y = 1; y < 5; y++) {
 
-        currentState = scoreOfAlrorithm(result);
-        for (int x = 0; x < V; x++) {
+            for (int x = 0; x < V; x++) {
+                worstPointColor(result, badPoints); // changing value of badPoits if point have bad neighbor.
+
+                randomColor = (rand() % adjListNodes(adj, V));
+                if (badPoints[x] != 0) {
+                    while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
+                    result[x] = randomColor;
+
+                    if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestNeighbor)) {
+                        bestNeighbor[x] = result[x];
+                    }
 
 
-            randomColor = (rand() % adjListNodes(adj, V));
-            if (badPoints[x] !=
-                0) { // my normal solusion is to randomly select all colors, but then all solusion are neighbor's, but now we only are changing bad points so going back to tabu makes sense
-                while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
-                result[x] = randomColor;
+                }
+            }
+            for (int y = 0; y < i; y++) {
 
-            };
-            tabuList[i % tabuSize] += to_string(randomColor);
-        }
-        if (i > tabuSize) {  // when tabu list is full we begin to clean old tabu
-            tabuList[i % tabuSize] = "";
-        }
-        for (int y = 0; y < i; y++) {
-            if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
-                isTabu = true;
-                //       cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize] << endl;
+                if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
+                    isTabu = true;
+                    //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
 
+                }
+                if (i == 0) isTabu = false;
+            }
+            if (!isTabu) {
+                for (int u = 0; u < V; u++) {
+                    result[u] = bestNeighbor[u];
+
+                    tabuList[i % tabuSize] += to_string(result[u]);
+                }
             }
         }
-        if (currentState < scoreOfAlrorithm(result) && isTabu) {
-            for (int u = 0; u < V; u++) {
-                result[u] = backup[u];
-            }
-        }
+
+
     }
-
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
@@ -382,7 +400,7 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
 
             randomColor = (rand() % adjListNodes(adj, V));
             result[x] = randomColor;
-            tabuList[i % tabuSize] += to_string(randomColor);
+            tabuList[i % tabuSize] += to_string(randomColor); // to do, w zlym miejscu zapisuej do tabu
         }
         if (i > tabuSize) {  // when tabulsit is full we begin to clean old tabu
             tabuList[i % tabuSize] = "";
@@ -390,7 +408,7 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
         for (int y = 0; y < i; y++) {
             if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
                 isTabu = true;
-                //       cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize] << endl;
+                cout << "\njest tabu " << tabuList[y % tabuSize] << " bo tutaj jest " << tabuList[i % tabuSize] << endl;
 
             }
         }
@@ -442,9 +460,9 @@ int main() {
 
     //g1.greedyColoring();
     // g1.hillClimbingAlgorithm(100);
-    // g1.hillClimbingAlgorithmBestPoint(1);
-    //g1.tabuSearch(40, 10);
-    g1.tabuSearchBack(40, 10);
+    //g1.hillClimbingAlgorithmBestPoint(40);
+    g1.tabuSearch(40, 10);
+    //g1.tabuSearchBack(40, 10);
     cout << endl;
 
     // g1.greedyColoring();

@@ -332,26 +332,30 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
 
                 }
             }
-            for (int y = 0; y < i; y++) {
+        }
+        if (i > tabuSize) {  // when tabulsit is full we begin to clean old tabu
+            tabuList[i % tabuSize] = "";
+        }
+        for (int y = 0; y < i; y++) {
 
-                if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
-                    isTabu = true;
-                    //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
+            if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
+                isTabu = true;
+                //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
 
-                }
-                if (i == 0) isTabu = false;
             }
-            if (!isTabu) {
-                for (int u = 0; u < V; u++) {
-                    result[u] = bestNeighbor[u];
+            if (i == 0) isTabu = false;
+        }
+        if (!isTabu) {
+            for (int u = 0; u < V; u++) {
+                result[u] = bestNeighbor[u];
 
-                    tabuList[i % tabuSize] += to_string(result[u]);
-                }
+                tabuList[i % tabuSize] += to_string(result[u]);
             }
         }
-
-
     }
+
+
+
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
@@ -368,17 +372,17 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
     srand(time(nullptr));
     int randomColor;
     int result[V];
-    int bestResult[V];
     int currentState;
     int backup[V];
     string tabuList[tabuSize];
     int badPoints[V];
     bool isTabu;
+    int bestNeighbor[V];
 
 
     whiteout(result); // nuclear white
     whiteout(badPoints);
-    whiteout(bestResult);
+    whiteout(bestNeighbor);
 
 
     for (int i = 0; i < iteracion; i++) {
@@ -396,11 +400,24 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
         }
         currentState = scoreOfAlrorithm(result);
         for (int x = 0; x < V; x++) {
+            for (int y = 1; y < 5; y++) {
+
+                for (int x = 0; x < V; x++) {
+                    worstPointColor(result, badPoints); // changing value of badPoits if point have bad neighbor.
+
+                    randomColor = (rand() % adjListNodes(adj, V));
+                    if (badPoints[x] != 0) {
+                        while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
+                        result[x] = randomColor;
+
+                        if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestNeighbor)) {
+                            bestNeighbor[x] = result[x];
+                        }
 
 
-            randomColor = (rand() % adjListNodes(adj, V));
-            result[x] = randomColor;
-            tabuList[i % tabuSize] += to_string(randomColor); // to do, w zlym miejscu zapisuej do tabu
+                    }
+                }
+            }
         }
         if (i > tabuSize) {  // when tabulsit is full we begin to clean old tabu
             tabuList[i % tabuSize] = "";
@@ -408,24 +425,19 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
         for (int y = 0; y < i; y++) {
             if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
                 isTabu = true;
-                cout << "\njest tabu " << tabuList[y % tabuSize] << " bo tutaj jest " << tabuList[i % tabuSize] << endl;
+                //    cout << "\njest tabu " << tabuList[y % tabuSize] << " bo tutaj jest " << tabuList[i % tabuSize] << endl;
 
             }
+            if (i == 0) isTabu = false;
         }
-        if (currentState < scoreOfAlrorithm(result) && isTabu) {
+        if (!isTabu) {
             for (int u = 0; u < V; u++) {
-                result[u] = backup[u];
-                if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestResult)) {
-                    bestResult[u] = result[u];
-                }
+                result[u] = bestNeighbor[u];
+                tabuList[i % tabuSize] += to_string(result[u]);
 
             }
         }
-        if (i == iteracion) {
-            for (int u = 0; u < V; u++) { // if we don't have more iteracion let's use bestResult as answer.
-                result[u] = bestResult[u];
-            }
-        }
+
     }
 
     for (int u = 0; u < V; u++) {
@@ -442,6 +454,7 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
 
 
 }
+
 
 
 // Driver program to test above function
@@ -461,8 +474,8 @@ int main() {
     //g1.greedyColoring();
     // g1.hillClimbingAlgorithm(100);
     //g1.hillClimbingAlgorithmBestPoint(40);
-    g1.tabuSearch(40, 10);
-    //g1.tabuSearchBack(40, 10);
+    // g1.tabuSearch(40, 10);
+    g1.tabuSearchBack(40, 10);
     cout << endl;
 
     // g1.greedyColoring();

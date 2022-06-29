@@ -53,6 +53,10 @@ public:
     void tabuSearchBack(int iteracion, int tabuSize);
 
     int worstPointColor(int *result, int worstPoints[]);
+
+    void simulatedAnnealing(int iteracion);
+
+    void simulatedAnnealingBroken(int iteracion);
 };
 
 void Graph::addEdge(int v, int w) {
@@ -239,6 +243,75 @@ void Graph::greedyColoring() {
 }
 
 
+void Graph::simulatedAnnealingBroken(int iteracion) {
+
+    double particleHeat;
+    double temperature = iteracion * 0.6;
+    double cooling = iteracion * 0.1;
+    int result[V];
+    // Assign the first color to first vertex
+    result[0] = 0;
+    for (int x = 0; x < iteracion; x++) {
+
+
+
+
+        // Initialize remaining V-1 vertices as unassigned
+        for (int u = 1; u < V; u++)
+            result[u] = -1; // no color is assigned to u
+
+        // A temporary array to store the available colors. True
+        // value of available[cr] would mean that the color cr is
+        // assigned to one of its adjacent vertices
+        bool available[V];
+        for (int cr = 0; cr < V; cr++) {
+
+
+            available[cr] = false;
+        }
+        // Assign colors to remaining V-1 vertices
+        for (int u = 1; u < V; u++) {
+
+            // Process all adjacent vertices and flag their colors
+            // as unavailable
+            list<int>::iterator i;
+            for (i = adj[u].begin(); i != adj[u].end(); ++i)
+                particleHeat = (rand() % iteracion);
+            if (result[*i] != -1 )//|| particleHeat > temperature)// if we have big temperature parcitles are moving with a lot of haos
+
+                available[result[*i]] = true;
+
+
+            // Find the first available color
+            int cr;
+            for (cr = 0; cr < V; cr++)
+
+                if (!available[cr]) {
+                    break;
+                }
+            result[u] = cr; // Assign the found color
+            // Reset the values back to false for the next iteration
+            for (i = adj[u].begin(); i != adj[u].end(); ++i)
+
+                if (result[*i] != -1)
+                    available[result[*i]] = false;
+        }
+        temperature -= cooling;
+    }
+
+    // print the result
+    for (int u = 0; u < V; u++) {
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+    }
+    // scoreOfAlrorithm(result);
+    printf("There is %d different  colors \n", unique_color(result));
+    adjListNodes(adj, V);
+    cout << " \n bad connection are: " << badConnections(result) << endl;
+    cout << "Nasz algorytm uzyskal ocene: " << scoreOfAlrorithm(result);
+}
+
+
 void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
     srand(time(nullptr));
     int randomColor;
@@ -302,6 +375,7 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
     int badPoints[V];
     bool isTabu;
     int bestNeighbor[V];
+    int tabuLastPosision;
 
 
     whiteout(result); // nuclear white
@@ -327,6 +401,7 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
 
                     if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestNeighbor)) {
                         bestNeighbor[x] = result[x];
+                        tabuLastPosision = x;
                     }
 
 
@@ -336,15 +411,14 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
         if (i > tabuSize) {  // when tabulsit is full we begin to clean old tabu
             tabuList[i % tabuSize] = "";
         }
-        for (int y = 0; y < i; y++) {
 
-            if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
-                isTabu = true;
-                //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
+        if (to_string(bestNeighbor[tabuLastPosision]) == tabuList[i % tabuSize]) {
+            isTabu = true;
+            //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
 
-            }
-            if (i == 0) isTabu = false;
         }
+        if (i == 0) isTabu = false;
+
         if (!isTabu) {
             for (int u = 0; u < V; u++) {
                 result[u] = bestNeighbor[u];
@@ -353,7 +427,6 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
             }
         }
     }
-
 
 
     for (int u = 0; u < V; u++) {
@@ -370,7 +443,7 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
 
 void Graph::tabuSearchBack(int iteracion, int tabuSize) {
     srand(time(nullptr));
-    int randomColor;
+    int randomColor, tabuLastPosision;
     int result[V];
     int currentState;
     int backup[V];
@@ -387,17 +460,17 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
 
     for (int i = 0; i < iteracion; i++) {
         isTabu = false;
-
-        for (int u = 0; u < V; u++) {
-            backup[u] = result[u];
-        }
         if (badConnections(result) ==
-            0)  // if we don't have bad connection let's go back to tabu and try to go from there
-        {
+            0) { // if we don't have bad connection let's go back to tabu and try to go from there
+            for (int u = 0; u < V; u++) {
+                result[u] = backup[u];
+            }
+        } else {
             for (int u = 0; u < V; u++) {
                 backup[u] = result[u];
             }
         }
+
         currentState = scoreOfAlrorithm(result);
         for (int x = 0; x < V; x++) {
             for (int y = 1; y < 5; y++) {
@@ -412,6 +485,7 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
 
                         if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestNeighbor)) {
                             bestNeighbor[x] = result[x];
+                            tabuLastPosision = x;
                         }
 
 
@@ -422,14 +496,13 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
         if (i > tabuSize) {  // when tabulsit is full we begin to clean old tabu
             tabuList[i % tabuSize] = "";
         }
-        for (int y = 0; y < i; y++) {
-            if (tabuList[y % tabuSize] == tabuList[i % tabuSize]) {
-                isTabu = true;
-                //    cout << "\njest tabu " << tabuList[y % tabuSize] << " bo tutaj jest " << tabuList[i % tabuSize] << endl;
+        if (to_string(bestNeighbor[tabuLastPosision]) == tabuList[i % tabuSize]) {
+            isTabu = true;
+            //        cout<<"\njest tabu "<<tabuList[y%tabuSize] << " bo tutaj jest " << tabuList[i%tabuSize];
 
-            }
-            if (i == 0) isTabu = false;
         }
+        if (i == 0) isTabu = false;
+
         if (!isTabu) {
             for (int u = 0; u < V; u++) {
                 result[u] = bestNeighbor[u];
@@ -455,6 +528,83 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
 
 }
 
+void Graph::simulatedAnnealing(int iteracion) {
+    int result[V];
+    // Assign the first color to first vertex
+    result[0] = 0;
+    double particleHeat;
+    double temperature = iteracion * 0.6;
+    double cooling = iteracion * 0.1;
+    int bestResult[V];
+
+    for(int x=0;x<iteracion;x++) {
+
+
+
+
+
+        // Initialize remaining V-1 vertices as unassigned
+        for (int u = 1; u < V; u++)
+            result[u] = -1; // no color is assigned to u
+
+        // A temporary array to store the available colors. True
+        // value of available[cr] would mean that the color cr is
+        // assigned to one of its adjacent vertices
+        bool available[V];
+        for (int cr = 0; cr < V; cr++)
+            available[cr] = false;
+
+        // Assign colors to remaining V-1 vertices
+        for (int u = 1; u < V; u++) {
+            // Process all adjacent vertices and flag their colors
+            // as unavailable
+            list<int>::iterator i;
+            for (i = adj[u].begin(); i != adj[u].end(); ++i) {
+                particleHeat = (rand() % iteracion);
+
+                if (result[*i] != -1 && particleHeat>temperature)
+                    available[result[*i]] = true;
+            }
+
+            // Find the first available color
+            int cr;
+            for (cr = 0; cr < V; cr++) {
+                particleHeat = (rand() % iteracion);
+                if (!available[cr]) {
+                    break;
+                }
+            }
+            result[u] = cr; // Assign the found color
+            // Reset the values back to false for the next iteration
+            for (i = adj[u].begin(); i != adj[u].end(); ++i)
+                if (result[*i] != -1)
+                    available[result[*i]] = false;
+        } temperature -= cooling;
+        if(scoreOfAlrorithm(result)< scoreOfAlrorithm(bestResult)) {
+            for (int u = 0; u < V; u++) {
+                bestResult[u] = result[u];
+                if (x == iteracion)
+                    result[u]=bestResult[u];
+            }
+        }
+    }
+
+    // print the result
+    for (int u = 0; u < V; u++) {
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+    }
+    // scoreOfAlrorithm(result);
+    printf("There is %d different  colors \n", unique_color(result));
+
+    adjListNodes(adj, V);
+
+    cout << " \n bad connection are: " << badConnections(result) << endl;
+    cout << "Nasz algorytm uzyskal ocene: " << scoreOfAlrorithm(result);
+
+
+
+}
 
 
 // Driver program to test above function
@@ -475,7 +625,8 @@ int main() {
     // g1.hillClimbingAlgorithm(100);
     //g1.hillClimbingAlgorithmBestPoint(40);
     // g1.tabuSearch(40, 10);
-    g1.tabuSearchBack(40, 10);
+    // g1.tabuSearchBack(40, 10);
+    g1.simulatedAnnealing(40);
     cout << endl;
 
     // g1.greedyColoring();

@@ -243,73 +243,7 @@ void Graph::greedyColoring() {
 }
 
 
-void Graph::simulatedAnnealingBroken(int iteracion) {
 
-    double particleHeat;
-    double temperature = iteracion * 0.6;
-    double cooling = iteracion * 0.1;
-    int result[V];
-    // Assign the first color to first vertex
-    result[0] = 0;
-    for (int x = 0; x < iteracion; x++) {
-
-
-
-
-        // Initialize remaining V-1 vertices as unassigned
-        for (int u = 1; u < V; u++)
-            result[u] = -1; // no color is assigned to u
-
-        // A temporary array to store the available colors. True
-        // value of available[cr] would mean that the color cr is
-        // assigned to one of its adjacent vertices
-        bool available[V];
-        for (int cr = 0; cr < V; cr++) {
-
-
-            available[cr] = false;
-        }
-        // Assign colors to remaining V-1 vertices
-        for (int u = 1; u < V; u++) {
-
-            // Process all adjacent vertices and flag their colors
-            // as unavailable
-            list<int>::iterator i;
-            for (i = adj[u].begin(); i != adj[u].end(); ++i)
-                particleHeat = (rand() % iteracion);
-            if (result[*i] != -1 )//|| particleHeat > temperature)// if we have big temperature parcitles are moving with a lot of haos
-
-                available[result[*i]] = true;
-
-
-            // Find the first available color
-            int cr;
-            for (cr = 0; cr < V; cr++)
-
-                if (!available[cr]) {
-                    break;
-                }
-            result[u] = cr; // Assign the found color
-            // Reset the values back to false for the next iteration
-            for (i = adj[u].begin(); i != adj[u].end(); ++i)
-
-                if (result[*i] != -1)
-                    available[result[*i]] = false;
-        }
-        temperature -= cooling;
-    }
-
-    // print the result
-    for (int u = 0; u < V; u++) {
-        cout << "Vertex " << u << " ---> Color "
-             << result[u] << endl;
-    }
-    // scoreOfAlrorithm(result);
-    printf("There is %d different  colors \n", unique_color(result));
-    adjListNodes(adj, V);
-    cout << " \n bad connection are: " << badConnections(result) << endl;
-    cout << "Nasz algorytm uzyskal ocene: " << scoreOfAlrorithm(result);
-}
 
 
 void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
@@ -605,6 +539,9 @@ void Graph::simulatedAnnealing(int iteracion) {
 
 
 }
+
+
+
 
 
 // Driver program to test above function

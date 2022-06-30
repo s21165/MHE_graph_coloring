@@ -1,4 +1,3 @@
-// A C++ program to implement greedy algorithm for graph coloring
 #include <iostream>
 #include <list>
 #include <time.h>

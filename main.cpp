@@ -58,7 +58,7 @@ public:
 
     void simulatedAnnealingGreedy(int iteracion);
 
-    void geneticAlgorithm(int iteracion, int familySize);
+    void geneticAlgorithm(int iteracion, int familySize,int splitMode,int mutacionMode);
 };
 
 
@@ -616,12 +616,15 @@ void Graph::simulatedAnnealing(int iteracion) {
 
 }
 
-void Graph::geneticAlgorithm(int iteracion, int familySize) {
+void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mutaccionMode) {
     srand(time(nullptr));
     int randomColor;
-    int result[V];
+    int bestScore;
+    int bestScorePosision;
     int currentState;
+    int result[V];
     int backup[V];
+    int bestResults[V];
     Family fam[familySize];
     Family kids[familySize];
     Family parrents[familySize];
@@ -633,7 +636,7 @@ void Graph::geneticAlgorithm(int iteracion, int familySize) {
         }
         currentState = scoreOfAlrorithm(result);
 
-        for(int f=0; f<familySize;f++) {
+        for (int f = 0; f < familySize; f++) {
             fam[f].resultsFamily.clear();
             for (int x = 0; x < V; x++) {
                 randomColor = (rand() % adjListNodes(adj, V));
@@ -644,54 +647,94 @@ void Graph::geneticAlgorithm(int iteracion, int familySize) {
             whiteout(a);
 
             copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), a);
-            fam[f].score= scoreOfAlrorithm(a);
+            fam[f].score = scoreOfAlrorithm(a);
 
         }
-        for(int f=0; f<familySize;f++) {
+        for (int f = 0; f < familySize; f++) {
 
-            int parrent1=(rand() % familySize);
-            int parrent2=(rand() % familySize);
-            while (parrent1==parrent2)
-                parrent2=(rand() % familySize);
-            if(fam[parrent1].score>=fam[parrent2].score) // winner of our coloseum is becoming parrents of our kids.
+
+            int parrent1 = (rand() % familySize);
+            int parrent2 = (rand() % familySize);
+            while (parrent1 == parrent2)
+                parrent2 = (rand() % familySize);
+            if (fam[parrent1].score >=
+                fam[parrent2].score) // winner of our coloseum is becoming parrents of our kids.
             {
-                parrents[(f)%familySize]=fam[parrent1];
-            }else parrents[(f)%familySize]=fam[parrent2];
-        }
+                parrents[(f) % familySize] = fam[parrent1];
+            } else parrents[(f) % familySize] = fam[parrent2];
 
-        for(int f=0; f<familySize;f++) { // making kids from halfs of parrents
-            kids[f].resultsFamily.clear();
-            int parrent1=(rand() % familySize);
-            int parrent2=(rand() % familySize);
-            while (parrent1==parrent2)
-                parrent2=(rand() % familySize);
-            for (int x = 0; x < parrents[parrent1].resultsFamily.size()/2; x++) {
-                kids[f].resultsFamily.push_back(parrents[parrent1].resultsFamily[x]);
-                cout << parrents[f].resultsFamily[x] << " ";
-            }
-
-            for (int x = parrents[parrent2].resultsFamily.size()/2; x < parrents[parrent2].resultsFamily.size(); x++) {
-                kids[f].resultsFamily.push_back(parrents[parrent2].resultsFamily[x]);
-                cout << parrents[f].resultsFamily[x] << " ";
-            }
-
-
-        }
-        for(int f=0; f<familySize;f++){ // mutacion of middle poits in kids
-            double x=(rand() % 1);
-            if(x<0.90) {
-                randomColor = (rand() % adjListNodes(adj, V));
-                kids[f].resultsFamily.at(kids[f].resultsFamily.size() / 2) = randomColor;
-            }
-        };
-
-
-        if (currentState < scoreOfAlrorithm(result)) {
-            for (int u = 0; u < V; u++) {
-                result[u] = backup[u];
-            }
         }
     }
+
+    for(int f=0; f<familySize-1;f++) { // making kids from halfs of parrents
+        kids[f].resultsFamily.clear();
+        if (splitMode == 0) {
+            kids[familySize-1].resultsFamily.clear();
+
+
+
+
+
+
+            for (int x = 0; x < parrents[f].resultsFamily.size() / 2; x++) {
+                kids[f].resultsFamily.push_back(parrents[f].resultsFamily[x]);
+                //  cout << parrents[f].resultsFamily[x] << " ";
+            }
+
+            for (int x = parrents[f+1].resultsFamily.size() / 2;
+                 x < parrents[f+1].resultsFamily.size(); x++) {
+                kids[f].resultsFamily.push_back(parrents[f+1].resultsFamily[x]);
+                //cout << parrents[f].resultsFamily[x] << " ";
+            }
+
+            if(f==familySize-2) {
+                for (int x = 0; x < parrents[0].resultsFamily.size() / 2; x++) {
+                    kids[familySize - 1].resultsFamily.push_back(parrents[0].resultsFamily[x]);
+                }
+                for (int x = parrents[familySize - 1].resultsFamily.size() / 2;
+                     x < parrents[familySize - 1].resultsFamily.size(); x++) {
+                    kids[familySize - 1].resultsFamily.push_back(parrents[familySize - 1].resultsFamily[x]);
+                }
+            }
+        }
+        else{
+
+        }
+
+    }
+    for(int f=0; f<familySize;f++){ // mutacion of middle poits in kids
+        double x=(rand() % 100);
+        if(x<90) {
+            randomColor = (rand() % adjListNodes(adj, V));
+            kids[f].resultsFamily.at(kids[f].resultsFamily.size() / 2) = randomColor;
+        }
+        fam[f]=kids[f];             // our kids now become parrent's after they went through mutacion
+    };
+
+
+    if (currentState < scoreOfAlrorithm(result)) {
+        for (int u = 0; u < V; u++) {
+            result[u] = backup[u];
+        }
+    }
+
+    for(int f=0; f<familySize;f++){ // scoring our next generacion
+        int b[fam[f].resultsFamily.size()];
+        whiteout(b);
+        copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), b);
+        fam[f].score = scoreOfAlrorithm(b);
+
+    }
+    for(int f=0; f<familySize;f++){ // searching for best results in our next generacion
+        if(fam[f].score<bestScore){
+            bestScore=fam[f].score;
+            bestScorePosision=f;
+
+        }
+
+
+    }
+
 
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
@@ -725,7 +768,7 @@ int main() {
     // g1.tabuSearch(40, 10);
     // g1.tabuSearchBack(40, 10);
     // g1.simulatedAnnealing(40);
-    g1.geneticAlgorithm(1,4);
+    g1.geneticAlgorithm(1,4,0,0);
     cout << endl;
 
     // g1.greedyColoring();

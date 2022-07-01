@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 
+
 using namespace std;
 
 // A class that represents an undirected graph
@@ -71,7 +72,29 @@ public:
     vector<int> resultsFamily;
 
 };
-fstream fout;
+
+void write_csv(std::string filename, std::vector<int> vals){
+    // Make a CSV file with one column of integer values
+    // filename - the name of the file
+    // colname - the name of the one and only column
+    // vals - an integer vector of values
+
+    // Create an output filestream object
+    ofstream myFile(filename);
+    // Send the column name to the stream
+    myFile << "id,score" << "\n";
+
+    // Send data to the stream
+    for(int i = 0; i < vals.size(); ++i)
+    {
+        myFile << i<<","<<vals.at(i)<< "\n";
+
+    }
+
+    // Close the file
+    myFile.close();
+}
+
 
 
 
@@ -173,16 +196,15 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
     int currentState;
     int backup[V];
     whiteout(result); // nuclear white
-//fout.open("hillClimbingAlgorithm.csv");
-//   fout.open("Student_data.csv", ios::out);
-//fout <<"test?";
-
+    std::vector<int> vec;
+    //write_csv("onesds.csv", "Col1", vec);
 
     for (int i = 0; i < iteracion; i++) {
         for (int u = 0; u < V; u++) {
             backup[u] = result[u];
         }
         currentState = scoreOfAlrorithm(result);
+        vec.push_back(scoreOfAlrorithm(result));
         for (int x = 0; x < V; x++) {
             randomColor = (rand() % adjListNodes(adj, V));
 
@@ -202,7 +224,8 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
     printf("There is %d different  colors \n", unique_color(result));
     cout << " \n Wrong connection happend " << badConnections(result) << endl;
     cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result);
-    fout.close();
+
+    write_csv("HillClimbing.csv",vec);
 }
 
 
@@ -276,12 +299,14 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
     whiteout(result); // nuclear white
     whiteout(badPoints);
     whiteout(bestNeighbor);
+    std::vector<int> vec;
 
     for (int i = 0; i < iteracion; i++) {
 
         for (int u = 0; u < V; u++) {
             backup[u] = result[u];
         }
+        vec.push_back(scoreOfAlrorithm(result));
         for (int y = 1; y < 5; y++) {
 
             for (int x = 0; x < V; x++) {
@@ -312,7 +337,7 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
         //     }
         // }
     }
-
+    write_csv("HillClimbingBest.csv",vec);
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
@@ -333,6 +358,7 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
     bool isTabu;
     int bestNeighbor[V];
     int tabuLastPosision;
+    std::vector<int> vec;
 
 
     whiteout(result); // nuclear white
@@ -346,6 +372,7 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
         for (int u = 0; u < V; u++) {
             backup[u] = result[u];
         }
+        vec.push_back(scoreOfAlrorithm(result));
         for (int y = 1; y < 5; y++) {
 
             for (int x = 0; x < V; x++) {
@@ -385,7 +412,7 @@ void Graph::tabuSearch(int iteracion, int tabuSize) {
         }
     }
 
-
+    write_csv("TabuSearch.csv",vec);
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
@@ -402,12 +429,12 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
     srand(time(nullptr));
     int randomColor, tabuLastPosision;
     int result[V];
-    int currentState;
     int backup[V];
     string tabuList[tabuSize];
     int badPoints[V];
     bool isTabu;
     int bestNeighbor[V];
+    std::vector<int> vec;
 
 
     whiteout(result); // nuclear white
@@ -417,6 +444,7 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
 
     for (int i = 0; i < iteracion; i++) {
         isTabu = false;
+        vec.push_back(scoreOfAlrorithm(result));
         if (badConnections(result) ==
             0) { // if we don't have bad connection let's go back to tabu and try to go from there
             for (int u = 0; u < V; u++) {
@@ -426,9 +454,9 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
             for (int u = 0; u < V; u++) {
                 backup[u] = result[u];
             }
+
         }
 
-        currentState = scoreOfAlrorithm(result);
         for (int x = 0; x < V; x++) {
             for (int y = 1; y < 5; y++) {
 
@@ -473,7 +501,7 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
     for (int u = 0; u < V; u++) {
         backup[u] = result[u];
     }
-
+    write_csv("TabuSearchBack.csv",vec);
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
@@ -570,14 +598,15 @@ void Graph::simulatedAnnealing(int iteracion) {
     srand(time(nullptr));
     int randomColor;
     int result[V];
-    int currentState;
     int backup[V];
     double particleHeat;
     double temperature = iteracion * 0.6;
     double cooling = iteracion * 0.1;
     int badPoints[V];
     int bestNeighbor[V];
+    std::vector<int> vec;
     whiteout(result); // nuclear white
+    whiteout(bestNeighbor);
 
     for (int i = 0; i < iteracion; i++) {
 
@@ -600,17 +629,20 @@ void Graph::simulatedAnnealing(int iteracion) {
                     }
                     for (int u = 0; u < V; u++) {
                         result[u] = backup[u];
-                    }
+                    }temperature-=cooling;
 
 
                 }
             }
         }
+
+
         for (int u = 0; u < V; u++) {
             result[u] = bestNeighbor[u];
         }
+        vec.push_back(scoreOfAlrorithm(result));
     }
-
+    write_csv("SimulatedAnnealing.csv",vec);
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
              << result[u] << endl;
@@ -625,6 +657,7 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
     srand(time(nullptr));
     int randomColor;
     int bestScore;
+    std::vector<int> vec;
     int result[V];
     int bestResults[V];
     int worstPoints[V];
@@ -635,24 +668,31 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
     whiteout(bestResults);
 
     for (int i = 0; i < iteracion; i++) {
+        if(i==0) {
+            for (int f = 0; f < familySize; f++) {
+                fam[f].resultsFamily.clear();
+                for (int x = 0; x < V; x++) {
+                    randomColor = (rand() % adjListNodes(adj, V));
+                    fam[f].resultsFamily.push_back(randomColor);    // adding family colors
+                    result[x] = randomColor;
+                }
+                int a[fam[f].resultsFamily.size()];
+                whiteout(a);
 
-        for (int f = 0; f < familySize; f++) {
-            fam[f].resultsFamily.clear();
-            for (int x = 0; x < V; x++) {
-                randomColor = (rand() % adjListNodes(adj, V));
-                fam[f].resultsFamily.push_back(randomColor);    // adding family colors
-                result[x] = randomColor;
+                copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), a);
+                fam[f].score = scoreOfAlrorithm(a);
+
             }
-            int a[fam[f].resultsFamily.size()];
-            whiteout(a);
-
-            copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), a);
-            fam[f].score = scoreOfAlrorithm(a);
-
         }
+
+
         for (int f = 0; f < familySize; f++) {
 
-
+            if(fam[f].score<bestScore) {
+                bestScore = fam[f].score;
+                copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), bestResults);
+                vec.push_back(bestScore);
+            }
             int parrent1 = (rand() % familySize);
             int parrent2 = (rand() % familySize);
             while (parrent1 == parrent2)
@@ -776,8 +816,12 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
         if(fam[f].score<bestScore){
             bestScore=fam[f].score;
             copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), bestResults);
+            vec.push_back(bestScore);
+
         }
     }
+
+    write_csv("GeneticAlgorithmCutmode0Mutacionmode0.csv",vec);
 
 
     for (int u = 0; u < V; u++) {
@@ -792,8 +836,14 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
 }
 
 
+
+
+
 // Driver program to test above function
 int main() {
+    // std::vector<int> vec(100, 1);
+    // write_csv("ones2.csv", "Col1", vec);
+
     Graph g1(5);
     g1.addEdge(0, 1);
     g1.addEdge(0, 2);
@@ -807,12 +857,12 @@ int main() {
 
 
     //g1.greedyColoring();
-    g1.hillClimbingAlgorithm(10);
+    //g1.hillClimbingAlgorithm(10);
     //g1.hillClimbingAlgorithmBestPoint(40);
     // g1.tabuSearch(40, 10);
     // g1.tabuSearchBack(40, 10);
     // g1.simulatedAnnealing(40);
-    // g1.geneticAlgorithm(1,4,1,1);
+    //g1.geneticAlgorithm(10,4,0,0);
     cout << endl;
 
     // g1.greedyColoring();

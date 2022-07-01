@@ -2,6 +2,7 @@
 #include <list>
 #include <time.h>
 #include <algorithm>
+#include <vector>
 
 using namespace std;
 
@@ -55,8 +56,23 @@ public:
 
     void simulatedAnnealing(int iteracion);
 
-    void simulatedAnnealingBroken(int iteracion);
+    void simulatedAnnealingGreedy(int iteracion);
+
+    void geneticAlgorithm(int iteracion, int familySize);
 };
+
+
+class Family
+{
+public:
+
+    int score=0;
+    vector<int> resultsFamily;
+
+};
+
+
+
 
 void Graph::addEdge(int v, int w) {
     adj[v].push_back(w);
@@ -274,6 +290,9 @@ void Graph::hillClimbingAlgorithmBestPoint(int iteracion) {
                     if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestNeighbor)) {
                         bestNeighbor[x] = result[x];
                     }
+                    for (int u = 0; u < V; u++) {
+                        result[u] = backup[u];
+                    }
 
 
                 }
@@ -461,7 +480,7 @@ void Graph::tabuSearchBack(int iteracion, int tabuSize) {
 
 }
 
-void Graph::simulatedAnnealing(int iteracion) {
+void Graph::simulatedAnnealingGreedy(int iteracion) {
     int result[V];
     // Assign the first color to first vertex
     result[0] = 0;
@@ -522,6 +541,9 @@ void Graph::simulatedAnnealing(int iteracion) {
         }
     }
 
+
+
+
     // print the result
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
@@ -539,8 +561,148 @@ void Graph::simulatedAnnealing(int iteracion) {
 
 }
 
+void Graph::simulatedAnnealing(int iteracion) {
+    srand(time(nullptr));
+    int randomColor;
+    int result[V];
+    int currentState;
+    int backup[V];
+    double particleHeat;
+    double temperature = iteracion * 0.6;
+    double cooling = iteracion * 0.1;
+    int badPoints[V];
+    int bestNeighbor[V];
+    whiteout(result); // nuclear white
+
+    for (int i = 0; i < iteracion; i++) {
+
+        for (int u = 0; u < V; u++) {
+            backup[u] = result[u];
+        }
+        for (int y = 1; y < 5; y++) {
+
+            for (int x = 0; x < V; x++) {
+                worstPointColor(result, badPoints); // changing value of badPoits if point have bad neighbor.
+
+                randomColor = (rand() % adjListNodes(adj, V));
+                if (badPoints[x] != 0) {
+                    while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
+                    result[x] = randomColor;
+                    particleHeat = (rand() % iteracion);
+
+                    if (scoreOfAlrorithm(result) < scoreOfAlrorithm(bestNeighbor) || particleHeat > temperature) {
+                        bestNeighbor[x] = result[x];
+                    }
+                    for (int u = 0; u < V; u++) {
+                        result[u] = backup[u];
+                    }
 
 
+                }
+            }
+        }
+        for (int u = 0; u < V; u++) {
+            result[u] = bestNeighbor[u];
+        }
+    }
+
+    for (int u = 0; u < V; u++) {
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+    }
+    printf("There is %d different  colors \n", unique_color(result));
+    cout << " \n Wrong connection happend" << badConnections(result) << endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result);
+
+}
+
+void Graph::geneticAlgorithm(int iteracion, int familySize) {
+    srand(time(nullptr));
+    int randomColor;
+    int result[V];
+    int currentState;
+    int backup[V];
+    Family fam[familySize];
+    Family kids[familySize];
+    Family parrents[familySize];
+    whiteout(result); // nuclear white
+
+    for (int i = 0; i < iteracion; i++) {
+        for (int u = 0; u < V; u++) {
+            backup[u] = result[u];
+        }
+        currentState = scoreOfAlrorithm(result);
+
+        for(int f=0; f<familySize;f++) {
+            fam[f].resultsFamily.clear();
+            for (int x = 0; x < V; x++) {
+                randomColor = (rand() % adjListNodes(adj, V));
+                fam[f].resultsFamily.push_back(randomColor);    // adding family colors
+                result[x] = randomColor;
+            }
+            int a[fam[f].resultsFamily.size()];
+            whiteout(a);
+
+            copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), a);
+            fam[f].score= scoreOfAlrorithm(a);
+
+        }
+        for(int f=0; f<familySize;f++) {
+
+            int parrent1=(rand() % familySize);
+            int parrent2=(rand() % familySize);
+            while (parrent1==parrent2)
+                parrent2=(rand() % familySize);
+            if(fam[parrent1].score>=fam[parrent2].score) // winner of our coloseum is becoming parrents of our kids.
+            {
+                parrents[(f)%familySize]=fam[parrent1];
+            }else parrents[(f)%familySize]=fam[parrent2];
+        }
+
+        for(int f=0; f<familySize;f++) { // making kids from halfs of parrents
+            kids[f].resultsFamily.clear();
+            int parrent1=(rand() % familySize);
+            int parrent2=(rand() % familySize);
+            while (parrent1==parrent2)
+                parrent2=(rand() % familySize);
+            for (int x = 0; x < parrents[parrent1].resultsFamily.size()/2; x++) {
+                kids[f].resultsFamily.push_back(parrents[parrent1].resultsFamily[x]);
+                cout << parrents[f].resultsFamily[x] << " ";
+            }
+
+            for (int x = parrents[parrent2].resultsFamily.size()/2; x < parrents[parrent2].resultsFamily.size(); x++) {
+                kids[f].resultsFamily.push_back(parrents[parrent2].resultsFamily[x]);
+                cout << parrents[f].resultsFamily[x] << " ";
+            }
+
+
+        }
+        for(int f=0; f<familySize;f++){ // mutacion of middle poits in kids
+            double x=(rand() % 1);
+            if(x<0.90) {
+                randomColor = (rand() % adjListNodes(adj, V));
+                kids[f].resultsFamily.at(kids[f].resultsFamily.size() / 2) = randomColor;
+            }
+        };
+
+
+        if (currentState < scoreOfAlrorithm(result)) {
+            for (int u = 0; u < V; u++) {
+                result[u] = backup[u];
+            }
+        }
+    }
+
+    for (int u = 0; u < V; u++) {
+        cout << "Vertex " << u << " ---> Color "
+             << result[u] << endl;
+    }
+
+    printf("There is %d different  colors \n", unique_color(result));
+    cout << " \n Wrong connection happend" << badConnections(result) << endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result);
+
+}
 
 
 // Driver program to test above function
@@ -562,7 +724,8 @@ int main() {
     //g1.hillClimbingAlgorithmBestPoint(40);
     // g1.tabuSearch(40, 10);
     // g1.tabuSearchBack(40, 10);
-    g1.simulatedAnnealing(40);
+    // g1.simulatedAnnealing(40);
+    g1.geneticAlgorithm(1,4);
     cout << endl;
 
     // g1.greedyColoring();

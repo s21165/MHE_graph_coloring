@@ -3,6 +3,7 @@
 #include <time.h>
 #include <algorithm>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -70,7 +71,7 @@ public:
     vector<int> resultsFamily;
 
 };
-
+fstream fout;
 
 
 
@@ -172,6 +173,10 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
     int currentState;
     int backup[V];
     whiteout(result); // nuclear white
+//fout.open("hillClimbingAlgorithm.csv");
+//   fout.open("Student_data.csv", ios::out);
+//fout <<"test?";
+
 
     for (int i = 0; i < iteracion; i++) {
         for (int u = 0; u < V; u++) {
@@ -195,9 +200,9 @@ void Graph::hillClimbingAlgorithm(int iteracion) {
              << result[u] << endl;
     }
     printf("There is %d different  colors \n", unique_color(result));
-    cout << " \n Wrong connection happend" << badConnections(result) << endl;
+    cout << " \n Wrong connection happend " << badConnections(result) << endl;
     cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result);
-
+    fout.close();
 }
 
 
@@ -620,21 +625,16 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
     srand(time(nullptr));
     int randomColor;
     int bestScore;
-    int bestScorePosision;
-    int currentState;
     int result[V];
-    int backup[V];
     int bestResults[V];
+    int worstPoints[V];
     Family fam[familySize];
     Family kids[familySize];
     Family parrents[familySize];
     whiteout(result); // nuclear white
+    whiteout(bestResults);
 
     for (int i = 0; i < iteracion; i++) {
-        for (int u = 0; u < V; u++) {
-            backup[u] = result[u];
-        }
-        currentState = scoreOfAlrorithm(result);
 
         for (int f = 0; f < familySize; f++) {
             fam[f].resultsFamily.clear();
@@ -671,11 +671,6 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
         if (splitMode == 0) {
             kids[familySize-1].resultsFamily.clear();
 
-
-
-
-
-
             for (int x = 0; x < parrents[f].resultsFamily.size() / 2; x++) {
                 kids[f].resultsFamily.push_back(parrents[f].resultsFamily[x]);
                 //  cout << parrents[f].resultsFamily[x] << " ";
@@ -697,26 +692,78 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
                 }
             }
         }
-        else{
+        else{ //secounds method of slicing our parrent's to get their biological material for our next generacion
+            kids[familySize-1].resultsFamily.clear();
+
+            for (int x = 0; x < parrents[f].resultsFamily.size() / 3; x++) {
+                kids[f].resultsFamily.push_back(parrents[f].resultsFamily[x]);
+                //  cout << parrents[f].resultsFamily[x] << " ";
+            }
+
+            for (int x = parrents[f+1].resultsFamily.size() / 3;
+                 x < parrents[f+1].resultsFamily.size()*(2/3); x++) {
+                kids[f].resultsFamily.push_back(parrents[f+1].resultsFamily[x]);
+                //cout << parrents[f].resultsFamily[x] << " ";
+            }
+
+            for (int x = parrents[f+1].resultsFamily.size()*(2/3);
+                 x < parrents[f+1].resultsFamily.size(); x++) {
+                kids[f].resultsFamily.push_back(parrents[f+1].resultsFamily[x]);
+                //cout << parrents[f].resultsFamily[x] << " ";
+            }
+
+            if(f==familySize-2) {
+                for (int x = 0; x < parrents[0].resultsFamily.size() / 3; x++) {
+                    kids[familySize - 1].resultsFamily.push_back(parrents[0].resultsFamily[x]);
+                }
+                for (int x = parrents[familySize - 1].resultsFamily.size() / 3;
+                     x < parrents[familySize - 1].resultsFamily.size()*(2/3); x++) {
+                    kids[familySize - 1].resultsFamily.push_back(parrents[familySize - 1].resultsFamily[x]);
+                }
+
+                for (int x = parrents[familySize - 1].resultsFamily.size()*(2/3);
+                     x < parrents[familySize - 1].resultsFamily.size(); x++) {
+                    kids[familySize - 1].resultsFamily.push_back(parrents[familySize - 1].resultsFamily[x]);
+                }
+            }
 
         }
 
     }
-    for(int f=0; f<familySize;f++){ // mutacion of middle poits in kids
-        double x=(rand() % 100);
-        if(x<90) {
-            randomColor = (rand() % adjListNodes(adj, V));
-            kids[f].resultsFamily.at(kids[f].resultsFamily.size() / 2) = randomColor;
+    if(mutaccionMode==0) {
+        for (int f = 0; f < familySize; f++) { // mutacion of middle point's in our kids
+            double x = (rand() % 100);
+            if (x < 90) {
+                randomColor = (rand() % adjListNodes(adj, V));
+                kids[f].resultsFamily.at(kids[f].resultsFamily.size() / 2) = randomColor;
+            }
+            fam[f] = kids[f];             // our kids now become parrent's after they went through mutacion
         }
-        fam[f]=kids[f];             // our kids now become parrent's after they went through mutacion
-    };
+    }else{
+        for (int f = 0; f < familySize; f++) { // mutacion of bad poits in kids
+            double x = (rand() % 100);
+            if (x < 90) {
+                int b[fam[f].resultsFamily.size()];
+                copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), b);
+                worstPointColor(b, worstPoints);
+                for (int x = V/3; x < V*(2/3); x++) {
+                    int randomPoints = (rand() % adjListNodes(adj, V));
+                    if (worstPoints[randomPoints] != 0) {
+                        while (result[x] == randomColor) randomColor = (rand() % adjListNodes(adj, V));
+                        randomColor = (rand() % adjListNodes(adj, V));
+                        kids[f].resultsFamily.at(x) = randomColor;
+                    }
 
+                }
+            }
 
-    if (currentState < scoreOfAlrorithm(result)) {
-        for (int u = 0; u < V; u++) {
-            result[u] = backup[u];
+            fam[f] = kids[f];             // our kids now become parrent's after they went through mutacion
         }
+
     }
+
+
+
 
     for(int f=0; f<familySize;f++){ // scoring our next generacion
         int b[fam[f].resultsFamily.size()];
@@ -728,22 +775,19 @@ void Graph::geneticAlgorithm(int iteracion, int familySize,int splitMode,int mut
     for(int f=0; f<familySize;f++){ // searching for best results in our next generacion
         if(fam[f].score<bestScore){
             bestScore=fam[f].score;
-            bestScorePosision=f;
-
+            copy(fam[f].resultsFamily.begin(), fam[f].resultsFamily.end(), bestResults);
         }
-
-
     }
 
 
     for (int u = 0; u < V; u++) {
         cout << "Vertex " << u << " ---> Color "
-             << result[u] << endl;
+             << bestResults[u] << endl;
     }
 
-    printf("There is %d different  colors \n", unique_color(result));
-    cout << " \n Wrong connection happend" << badConnections(result) << endl;
-    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(result);
+    printf("There is %d different  colors \n", unique_color(bestResults));
+    cout << " \n Wrong connection happend" << badConnections(bestResults) << endl;
+    cout << "Our algorithm recived score:  " << scoreOfAlrorithm(bestResults);
 
 }
 
@@ -763,12 +807,12 @@ int main() {
 
 
     //g1.greedyColoring();
-    // g1.hillClimbingAlgorithm(100);
+    g1.hillClimbingAlgorithm(10);
     //g1.hillClimbingAlgorithmBestPoint(40);
     // g1.tabuSearch(40, 10);
     // g1.tabuSearchBack(40, 10);
     // g1.simulatedAnnealing(40);
-    g1.geneticAlgorithm(1,4,0,0);
+    // g1.geneticAlgorithm(1,4,1,1);
     cout << endl;
 
     // g1.greedyColoring();

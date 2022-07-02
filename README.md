@@ -10,3 +10,19 @@ Chromatic Number: The smallest number of colors needed to color a graph G is cal
 ![alt text](https://media.geeksforgeeks.org/wp-content/uploads/GraphColoring.png)
 
 ![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/Hill%20Climbing.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/HillBest.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/Tabu.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/TabuBack.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/Simulated%20Annealing.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/Getenic00.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/genetic01.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/Genetic10.png)
+
+![alt text](https://raw.githubusercontent.com/s21165/MHE_graph_coloring/main/genetic11.png)
